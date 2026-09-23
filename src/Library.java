@@ -9,10 +9,10 @@ public class Library {
     private int bookIdCount = 1;
     private int readerIdCount = 1;
 
-    public int nextIdBook(){
+    private int nextIdBook(){
         return bookIdCount++;
     }
-    public int nextIdReader(){
+    private int nextIdReader(){
         return readerIdCount++;
     }
 
@@ -35,12 +35,8 @@ public class Library {
         }
     }
     public Book findBookById(int id){
-        if(catalog.containsKey(id)){
-            return catalog.get(id);
-        }
-        else{
-            return null;
-        }
+
+        return catalog.get(id);
     }
     public List<Book> findBooksByAuthor(String author){
 
@@ -92,7 +88,7 @@ public class Library {
 
     /// МЕТОДЫ ДЛЯ РАБОТЫ С СПИСКОМ ПОЛЬЗОВАТЕЛЕЙ
 
-    public void addReader(String name,int phone ){
+    public void addReader(String name,String  phone ){
 
         int id = nextIdReader();
         Reader reader = new Reader(name, phone, id);
@@ -121,12 +117,7 @@ public class Library {
     }
 
     public Reader findReaderById(int id){
-        if(listReader.containsKey(id)){
-            return listReader.get(id);
-        }
-        else {
-            return null;
-        }
+        return listReader.get(id);
     }
 
     public List<Reader> listAllReaders(){
@@ -195,7 +186,7 @@ public class Library {
         Reader reader = listReader.get(readerId);
         if(reader == null){
             System.out.println("Пользователь не найден!");
-            return null;
+            return new ArrayList<>();
         }
         return new ArrayList<>(reader.getBookList());
     }
