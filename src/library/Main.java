@@ -1,7 +1,15 @@
-import java.util.Scanner;
-public class Main {//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
+package library;
 
-    // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+import library.service.*;
+
+import library.model.*;
+
+import library.exception.*;
+
+import java.util.Scanner;
+public class Main {
+
+
    static void main(String[] args) {
        Scanner scanner = new Scanner(System.in);
        Library library = new Library();
@@ -27,6 +35,8 @@ public class Main {//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
                   handleFind(scanner, library); break;
                case 0:
                    return;
+               default:
+                   System.out.println("Please, enter the number");
            }
        }
    }
@@ -52,7 +62,8 @@ public class Main {//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
                     System.out.println("Enter the publication date");
                     int publicationDate = scanner.nextInt();
 
-                    library.addBook(title, author, publicationDate);
+                    Book addedBook = library.addBook(title, author, publicationDate);
+                    System.out.println("ID of the added book " + addedBook.getId());
                     break;
 
                 case 2:
@@ -105,7 +116,8 @@ public class Main {//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
                         String name = scanner.nextLine();
                         System.out.println("Enter the phone");
                         String phone = scanner.nextLine();
-                        library.addReader(name, phone);
+                        Reader reader = library.addReader(name, phone);
+                        System.out.println("ID added user " + reader.getId());
                         break;
 
                     case 2:
@@ -149,21 +161,21 @@ public class Main {//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
                                0. Back
                                """);
 
-                int readerID;
-                int bookID;
+                int readerId;
+                int bookId;
 
                 switch (scanner.nextInt()){
 
                     case 1:
                         scanner.nextLine();
                         System.out.println("Enter reader ID");
-                        readerID = scanner.nextInt();
+                        readerId = scanner.nextInt();
                         scanner.nextLine();
                         System.out.println("Enter book ID");
-                        bookID = scanner.nextInt();
+                        bookId = scanner.nextInt();
                         scanner.nextLine();
 
-                        if(library.borrowBook(readerID, bookID)){
+                        if(library.borrowBook(readerId, bookId)){
                             System.out.println("Book has been added");
                         }
                         break;
@@ -171,15 +183,24 @@ public class Main {//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
                     case 2:
                         scanner.nextLine();
                         System.out.println("Enter reader ID");
-                        readerID = scanner.nextInt();
+                        readerId = scanner.nextInt();
                         scanner.nextLine();
                         System.out.println("Enter book ID");
-                        bookID = scanner.nextInt();
+                        bookId = scanner.nextInt();
                         scanner.nextLine();
 
-                        if(library.returnBookInLib(readerID, bookID)){
+                        try{
+                            int overDueDays = library.returnBookInLib(readerId, bookId);
+
                             System.out.println("Book has been return");
+                            if (overDueDays > 0) {
+                                System.out.println("Overdue by " + overDueDays + " days");
+                            }
                         }
+                        catch (LibraryException e){
+                            System.out.println(e.getMessage());
+                        }
+
                         break;
 
                     case 3:
@@ -222,8 +243,6 @@ public class Main {//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
                     case 2:
                         scanner.nextLine();
                         System.out.println("Enter the title book");
-
-                        System.out.println("List a book: ");
 
                         System.out.println(library.findBooksByTitle(scanner.nextLine()));
                         break;
