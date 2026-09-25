@@ -1,6 +1,7 @@
 package library.model;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 public class Book {
 
@@ -10,6 +11,19 @@ public class Book {
     private String author;
     private int publicationDate;
     private LocalDate issueDate;
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Book book = (Book) o;
+        return id == book.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
+
     private LocalDate dueDate;
 
     public Book(String title, String author, int publicationDate, int id){
