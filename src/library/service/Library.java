@@ -33,14 +33,16 @@ public class Library {
         catalog.put(id, book);
         return book;
     }
-    public boolean removeBook(int id){
-        if(catalog.containsKey(id) && !catalog.get(id).isBorrowed()){
-            catalog.remove(id);
-            return true;
+    public void removeBook(int bookId){
+        Book book = catalog.get(bookId);
+
+        if(book == null){
+            throw new BookNotFoundException(bookId);
         }
-        else {
-            return false;
+        if(book.isBorrowed()){
+            throw new BookBorrowedException(bookId);
         }
+        catalog.remove(bookId);
     }
     public Book findBookById(int id){
 
@@ -103,23 +105,22 @@ public class Library {
         return reader;
 
     }
-    public boolean removeReader(int id){
-        if(readers.containsKey(id)){
-            if(readers.get(id).getBookList().isEmpty()) {
-                readers.remove(id);
-                return true;
+    public Reader removeReader(int readerId){
+
+
+            Reader reader = readers.get(readerId);
+
+            if(reader == null) {
+                throw new ReaderNotFoundException(readerId);
             }
-            else{
-                System.out.println("Пользователь не сдал все книги!");
-                System.out.println("Список не сданных книг: ");
-                System.out.println(readers.get(id).getBookList());
-                return false;
+            if(!reader.getBookList().isEmpty()) {
+                throw new ReaderHasBorrowedBooksException(readerId, reader.getBookList());
             }
-        }
-        else {
-            System.out.println("Пользователь не найден!");
-            return false;
-        }
+
+
+            readers.remove(readerId);
+            return reader;
+
 
     }
 
@@ -133,23 +134,20 @@ public class Library {
 
     /// МЕТОДЫ ВЫДАЧИ И ВОЗВРАТА КНИГ
 
-    public boolean borrowBook(int readerId, int bookId) {
+    public void borrowBook(int readerId, int bookId) {
 
         Reader reader = readers.get(readerId);
         if (reader == null) {
-            System.out.println("Пользователь не найден");
-            return false;
+            throw new ReaderNotFoundException(readerId);
         }
 
         Book book = catalog.get(bookId);
         if (book == null) {
-            System.out.println("Книга с таким ID не найдена");
-            return false;
+            throw new BookNotFoundException(bookId);
         }
 
         if (book.isBorrowed()) {
-            System.out.println("Книга занята");
-            return false;
+            throw new BookBorrowedException(book.getId());
         }
 
         LocalDate issueDate = LocalDate.now();
@@ -158,7 +156,7 @@ public class Library {
         book.setDueDate(issueDate.plusDays(14));
         reader.takeBook(book);
 
-        return true;
+
     }
     public int returnBookInLib(int readerId, int bookId){
 
@@ -193,8 +191,7 @@ public class Library {
     public List<Book> listBooksByReader(int readerId){
         Reader reader = readers.get(readerId);
         if(reader == null){
-            System.out.println("Пользователь не найден!");
-            return new ArrayList<>();
+            throw new ReaderNotFoundException(readerId);
         }
         return new ArrayList<>(reader.getBookList());
     }

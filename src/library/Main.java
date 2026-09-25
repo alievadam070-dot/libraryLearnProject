@@ -68,10 +68,12 @@ public class Main {
 
                 case 2:
                     System.out.println("Enter the book ID to delete");
-                    if (library.removeBook(scanner.nextInt())) {
-                        System.out.println("Book has been delete");
-                    } else {
-                        System.out.println("The book was not found or is borrowed");
+                    try{
+                        library.removeBook(scanner.nextInt());
+                        System.out.println("Book has been deleted");
+                    }
+                    catch (LibraryException e){
+                        System.out.println(e.getMessage());
                     }
                     break;
                 case 3:
@@ -123,8 +125,14 @@ public class Main {
                     case 2:
                         scanner.nextLine();
                         System.out.println("Enter the reader ID to delete");
-                        library.removeReader(scanner.nextInt());
-                        scanner.nextLine();
+                        try {
+                            Reader removed = library.removeReader(scanner.nextInt());
+                            System.out.println("Reader has been removed: " + removed.getName());
+                        }
+                        catch (LibraryException e){
+                            System.out.println(e.getMessage());
+                        }
+
                         break;
                     case 3:
                         scanner.nextLine();
@@ -175,9 +183,13 @@ public class Main {
                         bookId = scanner.nextInt();
                         scanner.nextLine();
 
-                        if(library.borrowBook(readerId, bookId)){
-                            System.out.println("Book has been added");
-                        }
+                       try{
+                           library.borrowBook(readerId,bookId);
+                           System.out.println("Book has been added");
+                       }
+                       catch (LibraryException e){
+                           System.out.println(e.getMessage());
+                       }
                         break;
 
                     case 2:
