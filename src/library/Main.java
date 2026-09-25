@@ -13,6 +13,7 @@ public class Main {
    static void main(String[] args) {
        Scanner scanner = new Scanner(System.in);
        Library library = new Library();
+
        while (true) {
            System.out.println("""
                    === Library ===
@@ -24,7 +25,7 @@ public class Main {
                    """);
 
 
-           switch (scanner.nextInt()) {
+           switch (readInt(scanner, "Enter the number")) {
                case 1:
                    handleBooks(scanner, library); break;
                case 2:
@@ -36,12 +37,14 @@ public class Main {
                case 0:
                    return;
                default:
-                   System.out.println("Please, enter the number");
+                   System.out.println("Invalid input. Please select something from the list.");
+
            }
        }
    }
 
         public static void handleBooks(Scanner scanner, Library library){
+            int input;
         while(true) {
             System.out.println("""
                                === Books ===
@@ -51,25 +54,23 @@ public class Main {
                                4. Find book by id
                                0. Back
                                """);
-            switch (scanner.nextInt()) {
+            switch (readInt(scanner, "Enter the number")) {
 
                 case 1:
-                    scanner.nextLine();
                     System.out.println("Enter the title");
                     String title = scanner.nextLine();
                     System.out.println("Enter the author");
                     String author = scanner.nextLine();
-                    System.out.println("Enter the publication date");
-                    int publicationDate = scanner.nextInt();
+                    int publicationDate = readInt(scanner,"Enter the publication date" );
 
                     Book addedBook = library.addBook(title, author, publicationDate);
                     System.out.println("ID of the added book " + addedBook.getId());
                     break;
 
                 case 2:
-                    System.out.println("Enter the book ID to delete");
+                    input = readInt(scanner, "Enter the book ID to delete");
                     try{
-                        library.removeBook(scanner.nextInt());
+                        library.removeBook(input);
                         System.out.println("Book has been deleted");
                     }
                     catch (LibraryException e){
@@ -81,13 +82,14 @@ public class Main {
                     System.out.println(library.listAllBooks());
                     break;
                 case 4:
-                    System.out.println("Enter the book ID to find");
-                    Book book = library.findBookById(scanner.nextInt());
-                    if (book == null) {
-                        System.out.println("Book not found");
-                        break;
+                    input = readInt(scanner, "Enter the book ID to find");
+                    try {
+                        Book book = library.findBookById(input);
+                        System.out.println(book);
                     }
-                    System.out.println(book);
+                    catch (LibraryException e){
+                        System.out.println(e.getMessage());
+                    }
                     break;
                 case 0:
                     return;
@@ -124,9 +126,9 @@ public class Main {
 
                     case 2:
                         scanner.nextLine();
-                        System.out.println("Enter the reader ID to delete");
+
                         try {
-                            Reader removed = library.removeReader(scanner.nextInt());
+                            Reader removed = library.removeReader(readInt(scanner, "Enter the reader ID to delete"));
                             System.out.println("Reader has been removed: " + removed.getName());
                         }
                         catch (LibraryException e){
@@ -141,14 +143,18 @@ public class Main {
                         break;
                     case 4:
                         scanner.nextLine();
-                        System.out.println("Enter reader ID to find");
-                        System.out.println(library.findReaderById(scanner.nextInt()));
+                        try {
+                            System.out.println(library.findReaderById(readInt(scanner, "Enter reader ID to find")));
+                        }
+                        catch (LibraryException e){
+                           System.out.println(e.getMessage());
+                        }
                         break;
                     case 5:
                         scanner.nextLine();
-                        System.out.println("Enter reader ID");
+
                         try {
-                            System.out.println(library.listBooksByReader(scanner.nextInt()));
+                            System.out.println(library.listBooksByReader(readInt(scanner, "Enter reader ID")));
                         }
                         catch (LibraryException e){
                             System.out.println(e.getMessage());
@@ -177,16 +183,11 @@ public class Main {
                 int readerId;
                 int bookId;
 
-                switch (scanner.nextInt()){
+                switch (readInt(scanner, "Enter the number")){
 
                     case 1:
-                        scanner.nextLine();
-                        System.out.println("Enter reader ID");
-                        readerId = scanner.nextInt();
-                        scanner.nextLine();
-                        System.out.println("Enter book ID");
-                        bookId = scanner.nextInt();
-                        scanner.nextLine();
+                        readerId = readInt(scanner, "Enter reader ID");
+                        bookId = readInt(scanner, "Enter book ID");
 
                        try{
                            library.borrowBook(readerId,bookId);
@@ -198,13 +199,9 @@ public class Main {
                         break;
 
                     case 2:
-                        scanner.nextLine();
-                        System.out.println("Enter reader ID");
-                        readerId = scanner.nextInt();
-                        scanner.nextLine();
-                        System.out.println("Enter book ID");
-                        bookId = scanner.nextInt();
-                        scanner.nextLine();
+
+                        readerId = readInt(scanner, "Enter reader ID");
+                        bookId = readInt(scanner, "Enter book ID");
 
                         try{
                             int overDueDays = library.returnBookInLib(readerId, bookId);
@@ -221,7 +218,6 @@ public class Main {
                         break;
 
                     case 3:
-                        scanner.nextLine();
                         System.out.println("List readers with books: ");
                         System.out.println(library.listReadersWithBooks());
                         break;
@@ -248,9 +244,9 @@ public class Main {
                                0. Back
                                """);
 
-                switch (scanner.nextInt()) {
+                switch (readInt(scanner, "Enter the number")) {
                     case 1:
-                        scanner.nextLine();
+
                         System.out.println("Enter the author’s full name");
 
 
@@ -265,13 +261,9 @@ public class Main {
                         break;
 
                     case 3:
-                        scanner.nextLine();
                         System.out.println("Enter range year");
-                        int from = scanner.nextInt();
-                        scanner.nextLine();
-                        int to = scanner.nextInt();
-                        scanner.nextLine();
-
+                        int from = readInt(scanner, "from");
+                        int to = readInt(scanner, "to");
                         System.out.println(library.findBooksByYear(from, to));
                         break;
 
@@ -285,6 +277,17 @@ public class Main {
 
 
         }
+    }
+
+    public static int readInt(Scanner scanner, String promt){
+        System.out.println(promt);
+        while(!scanner.hasNextInt()){
+            System.out.println("Invalid input, please enter a number.");
+            scanner.nextLine();
+        }
+        int value = scanner.nextInt();
+        scanner.nextLine();
+        return value;
     }
 
 }

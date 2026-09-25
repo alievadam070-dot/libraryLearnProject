@@ -44,9 +44,12 @@ public class Library {
         }
         catalog.remove(bookId);
     }
-    public Book findBookById(int id){
-
-        return catalog.get(id);
+    public Book findBookById(int bookId){
+        Book book  = catalog.get(bookId);
+            if(book == null){
+                throw new BookNotFoundException(bookId);
+            }
+        return catalog.get(bookId);
     }
     public List<Book> findBooksByAuthor(String author){
 
@@ -124,8 +127,12 @@ public class Library {
 
     }
 
-    public Reader findReaderById(int id){
-        return readers.get(id);
+    public Reader findReaderById(int readerId){
+        Reader reader = readers.get(readerId);
+        if (reader == null){
+            throw new ReaderNotFoundException(readerId);
+        }
+        return readers.get(readerId);
     }
 
     public List<Reader> listAllReaders(){
