@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Map;
 
 public class Library {
-    private Map<Integer, Book> catalog = new HashMap<>();
-    private Map<Integer, Reader> readers = new HashMap<>();
+    private final Map<Integer, Book> catalog = new HashMap<>();
+    private final Map<Integer, Reader> readers = new HashMap<>();
     private int bookIdCount = 1;
     private int readerIdCount = 1;
 
@@ -147,7 +147,7 @@ public class Library {
         }
 
         if (book.isBorrowed()) {
-            throw new BookBorrowedException(book.getId());
+            throw new BookBorrowedException(bookId);
         }
 
         LocalDate issueDate = LocalDate.now();
@@ -178,7 +178,6 @@ public class Library {
 
         if(book.getDueDate() != null && book.getDueDate().isBefore(LocalDate.now())){
             overDueDays = ChronoUnit.DAYS.between(book.getDueDate(), LocalDate.now());
-            return (int) overDueDays;
         }
 
         book.setBorrowed(false);

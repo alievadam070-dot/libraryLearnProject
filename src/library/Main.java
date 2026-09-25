@@ -209,7 +209,7 @@ public class Main {
                         try{
                             int overDueDays = library.returnBookInLib(readerId, bookId);
 
-                            System.out.println("Book has been return");
+                            System.out.println("Book has been returned");
                             if (overDueDays > 0) {
                                 System.out.println("Overdue by " + overDueDays + " days");
                             }
