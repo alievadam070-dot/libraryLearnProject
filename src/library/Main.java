@@ -147,7 +147,12 @@ public class Main {
                     case 5:
                         scanner.nextLine();
                         System.out.println("Enter reader ID");
-                        System.out.println(library.listBooksByReader(scanner.nextInt()));
+                        try {
+                            System.out.println(library.listBooksByReader(scanner.nextInt()));
+                        }
+                        catch (LibraryException e){
+                            System.out.println(e.getMessage());
+                        }
                         break;
                     case 0:
                         return;
