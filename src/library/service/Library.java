@@ -49,7 +49,7 @@ public class Library {
             if(book == null){
                 throw new BookNotFoundException(bookId);
             }
-        return catalog.get(bookId);
+        return book;
     }
     public List<Book> findBooksByAuthor(String author){
 
@@ -132,7 +132,7 @@ public class Library {
         if (reader == null){
             throw new ReaderNotFoundException(readerId);
         }
-        return readers.get(readerId);
+        return reader;
     }
 
     public List<Reader> listAllReaders(){

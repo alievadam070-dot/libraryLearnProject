@@ -2,6 +2,7 @@ package library.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Reader {
     private int id;
@@ -32,11 +33,23 @@ public class Reader {
         return phone;
     }
 
+
+
     @Override
     public String toString() {
         return "Name: " + name + ", Phone: " + phone + ", ID: " + id + ", Book list: " + bookList;
     }
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Reader reader = (Reader) o;
+        return id == reader.id;
+    }
 
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(id);
+    }
     public void takeBook(Book book){
         bookList.add(book);
     }

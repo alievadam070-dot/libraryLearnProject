@@ -12,17 +12,7 @@ public class Book {
     private int publicationDate;
     private LocalDate issueDate;
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        Book book = (Book) o;
-        return id == book.id;
-    }
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(id);
-    }
 
     private LocalDate dueDate;
 
@@ -81,5 +71,16 @@ public class Book {
                 ", Publication date: " + publicationDate +
                 ", ID: " + id +
                 ", Status: " + isBorrowed;
+    }
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Book book = (Book) o;
+        return id == book.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(id);
     }
 }

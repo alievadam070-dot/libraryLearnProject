@@ -10,7 +10,7 @@ import java.util.Scanner;
 public class Main {
 
 
-   static void main(String[] args) {
+   public static void main(String[] args) {
        Scanner scanner = new Scanner(System.in);
        Library library = new Library();
 
@@ -113,9 +113,8 @@ public class Main {
                                5. Show reader books
                                0. Back
                                """);
-                switch (scanner.nextInt()){
+                switch (readInt(scanner, "Enter the number")){
                     case 1:
-                        scanner.nextLine();
                         System.out.println("Enter the name");
                         String name = scanner.nextLine();
                         System.out.println("Enter the phone");
@@ -125,8 +124,6 @@ public class Main {
                         break;
 
                     case 2:
-                        scanner.nextLine();
-
                         try {
                             Reader removed = library.removeReader(readInt(scanner, "Enter the reader ID to delete"));
                             System.out.println("Reader has been removed: " + removed.getName());
@@ -137,12 +134,10 @@ public class Main {
 
                         break;
                     case 3:
-                        scanner.nextLine();
                         System.out.println("List all readers: ");
                         System.out.println(library.listAllReaders());
                         break;
                     case 4:
-                        scanner.nextLine();
                         try {
                             System.out.println(library.findReaderById(readInt(scanner, "Enter reader ID to find")));
                         }
@@ -151,7 +146,6 @@ public class Main {
                         }
                         break;
                     case 5:
-                        scanner.nextLine();
 
                         try {
                             System.out.println(library.listBooksByReader(readInt(scanner, "Enter reader ID")));
@@ -254,9 +248,7 @@ public class Main {
                         break;
 
                     case 2:
-                        scanner.nextLine();
                         System.out.println("Enter the title book");
-
                         System.out.println(library.findBooksByTitle(scanner.nextLine()));
                         break;
 
