@@ -1,15 +1,23 @@
 package library.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Reader {
     private int id;
     private String name;
-    private List<Book> bookList;
+
+    @JsonIgnore
+    private List<Book> bookList =  new ArrayList<>();
+
     private String phone;
 
+    public Reader(){
+
+    }
     public Reader(String name, String phone, int id){
         this.name = name;
         this.phone = phone;
@@ -37,7 +45,11 @@ public class Reader {
 
     @Override
     public String toString() {
-        return "Name: " + name + ", Phone: " + phone + ", ID: " + id + ", Book list: " + bookList;
+        return  "\n Name: " + name +
+                "\n Phone: " + phone +
+                "\n ID: " + id +
+                "\n Book list: " + bookList +
+                "\n";
     }
     @Override
     public boolean equals(Object o) {

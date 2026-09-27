@@ -6,6 +6,7 @@ import library.model.*;
 
 import library.exception.*;
 
+import java.io.IOException;
 import java.util.Scanner;
 public class Main {
 
@@ -13,6 +14,13 @@ public class Main {
    public static void main(String[] args) {
        Scanner scanner = new Scanner(System.in);
        Library library = new Library();
+
+       try {
+           library.loadFromFile();
+       }
+       catch (IOException e){
+           System.out.println(e.getMessage());
+       }
 
        while (true) {
            System.out.println("""
@@ -35,6 +43,12 @@ public class Main {
                case 4:
                   handleFind(scanner, library); break;
                case 0:
+                   try {
+                       library.saveToFile();
+                   }
+                   catch (IOException e ){
+                       System.out.println(e.getMessage());
+                   }
                    return;
                default:
                    System.out.println("Invalid input. Please select something from the list.");

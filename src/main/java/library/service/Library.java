@@ -1,9 +1,14 @@
 package library.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import library.model.Book;
 import library.model.Reader;
 import library.exception.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -16,6 +21,8 @@ public class Library {
     private final Map<Integer, Reader> readers = new HashMap<>();
     private int bookIdCount = 1;
     private int readerIdCount = 1;
+
+    private final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     private int nextIdBook(){
         return bookIdCount++;
@@ -158,6 +165,7 @@ public class Library {
         }
 
         LocalDate issueDate = LocalDate.now();
+        book.setIdReader(readerId);
         book.setBorrowed(true);
         book.setIssueDate(issueDate);
         book.setDueDate(issueDate.plusDays(14));
@@ -188,6 +196,7 @@ public class Library {
         }
 
         book.setBorrowed(false);
+        book.setIdReader(null);
         book.setIssueDate(null);
         book.setDueDate(null);
         reader.returnBook(book);
@@ -211,5 +220,46 @@ public class Library {
             readers.add(reader);
         }
         return readers;
+    }
+
+    /// МЕТОДЫ СОХРАНЕНИЕ И ЧТЕНИЯ ДАННЫХ
+
+    public void saveToFile()throws IOException {
+
+        mapper.writeValue(new File("Catalog.json"), catalog);
+        mapper.writeValue(new File("Readers.json"), readers);
+
+    }
+
+    public void loadFromFile() throws IOException{
+
+        File catalogFile = new File("Catalog.json");
+        File readersFile = new File("Readers.json");
+
+        if (!catalogFile.exists() || !readersFile.exists()) {
+            return;
+        }
+
+        Map<Integer, Book> loadedBooks = mapper.readValue(new File("Catalog.json"), new TypeReference<Map<Integer, Book>>() {});
+        catalog.clear();
+        catalog.putAll(loadedBooks);
+
+        Map<Integer, Reader> loadedReaders = mapper.readValue(new File("Readers.json"), new TypeReference<Map<Integer, Reader>>() {});
+        readers.clear();
+        readers.putAll(loadedReaders);
+
+        for(Book book : catalog.values()){
+            if(book.getIdReader() == null){
+                continue;
+            }
+
+            Reader reader = readers.get(book.getIdReader());
+            if(reader == null){
+                System.out.println("Warning: book " + book.getId() + " references missing reader " + book.getIdReader());
+                continue;
+            }
+            reader.takeBook(book);
+        }
+
     }
 }

@@ -6,6 +6,7 @@ public class Book {
 
     private int id;
     private boolean isBorrowed = false;
+    private Integer idReader;
     private String title;
     private String author;
     private int publicationDate;
@@ -15,6 +16,9 @@ public class Book {
 
     private LocalDate dueDate;
 
+    public Book(){
+
+    }
     public Book(String title, String author, int publicationDate, int id){
         this.author =  author;
         this.publicationDate = publicationDate;
@@ -51,6 +55,10 @@ public class Book {
         return dueDate;
     }
 
+    public Integer getIdReader() {
+        return idReader;
+    }
+
     public void setBorrowed(boolean borrowed) {
         isBorrowed = borrowed;
     }
@@ -63,13 +71,18 @@ public class Book {
         this.issueDate = issueDate;
     }
 
+    public void setIdReader(Integer idReader) {
+        this.idReader = idReader;
+    }
+
     @Override
     public String toString() {
-        return "Title: " + title +
-                ", Author: " + author +
-                ", Publication date: " + publicationDate +
-                ", ID: " + id +
-                ", Status: " + isBorrowed;
+        return  "\n Title: " + title +
+                "\n Author: " + author +
+                "\n Publication date: " + publicationDate +
+                "\n ID: " + id +
+                "\n Status: " + isBorrowed +
+                "\n";
     }
     @Override
     public boolean equals(Object o) {
