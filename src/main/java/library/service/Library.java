@@ -2,6 +2,7 @@ package library.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import library.model.Book;
 import library.model.Reader;
@@ -22,7 +23,9 @@ public class Library {
     private int bookIdCount = 1;
     private int readerIdCount = 1;
 
-    private final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    private final ObjectMapper mapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
     private int nextIdBook(){
         return bookIdCount++;
@@ -231,13 +234,15 @@ public class Library {
 
     }
 
-    public void loadFromFile() throws IOException{
+    public List<String> loadFromFile() throws IOException{
 
         File catalogFile = new File("Catalog.json");
         File readersFile = new File("Readers.json");
 
+        List<String> warnings = new ArrayList<>();
+
         if (!catalogFile.exists() || !readersFile.exists()) {
-            return;
+            return warnings;
         }
 
         Map<Integer, Book> loadedBooks = mapper.readValue(new File("Catalog.json"), new TypeReference<Map<Integer, Book>>() {});
@@ -255,11 +260,11 @@ public class Library {
 
             Reader reader = readers.get(book.getIdReader());
             if(reader == null){
-                System.out.println("Warning: book " + book.getId() + " references missing reader " + book.getIdReader());
+                warnings.add("Book " + book.getId() + " references missing reader " + book.getIdReader());
                 continue;
             }
             reader.takeBook(book);
         }
-
+        return warnings;
     }
 }

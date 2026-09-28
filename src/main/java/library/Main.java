@@ -7,6 +7,7 @@ import library.model.*;
 import library.exception.*;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Scanner;
 public class Main {
 
@@ -16,9 +17,12 @@ public class Main {
        Library library = new Library();
 
        try {
-           library.loadFromFile();
+           List<String> warnings = library.loadFromFile();
+           for(String warning : warnings){
+               System.out.println(warning);
+           }
        }
-       catch (IOException e){
+       catch (IOException e ) {
            System.out.println(e.getMessage());
        }
 
