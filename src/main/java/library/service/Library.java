@@ -23,6 +23,10 @@ public class Library {
     private int bookIdCount = 1;
     private int readerIdCount = 1;
 
+    private final String catalogFileName = "Catalog.json";
+    private final String readersFileName = "Readers.json";
+    private final String countsFileName = "Counts.json";
+
     private final ObjectMapper mapper = new ObjectMapper()
             .registerModule(new JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -229,37 +233,73 @@ public class Library {
 
     public void saveToFile()throws IOException {
 
-        mapper.writeValue(new File("Catalog.json"), catalog);
-        mapper.writeValue(new File("Readers.json"), readers);
+        mapper.writeValue(new File(catalogFileName), catalog);
+        mapper.writeValue(new File(readersFileName), readers);
+
+        Map<String, Integer> idCounts = new HashMap<>();
+        idCounts.put("bookIdCount", bookIdCount);
+        idCounts.put("readerIdCount", readerIdCount);
+
+        mapper.writeValue(new File(countsFileName), idCounts );
 
     }
 
-    public List<String> loadFromFile() throws IOException{
+    public List<String> loadFromFile() throws IOException {
 
-        File catalogFile = new File("Catalog.json");
-        File readersFile = new File("Readers.json");
+        File catalogFile = new File(catalogFileName);
+        File readersFile = new File(readersFileName);
+        File countsFile = new File(countsFileName);
 
         List<String> warnings = new ArrayList<>();
 
-        if (!catalogFile.exists() || !readersFile.exists()) {
-            return warnings;
+
+        if (catalogFile.exists()) {
+            Map<Integer, Book> loadedBooks = mapper.readValue(catalogFile,
+                    new TypeReference<Map<Integer, Book>>() {
+                    });
+            catalog.clear();
+            catalog.putAll(loadedBooks);
         }
 
-        Map<Integer, Book> loadedBooks = mapper.readValue(new File("Catalog.json"), new TypeReference<Map<Integer, Book>>() {});
-        catalog.clear();
-        catalog.putAll(loadedBooks);
+        if (readersFile.exists()) {
+            Map<Integer, Reader> loadedReaders = mapper.readValue(readersFile,
+                    new TypeReference<Map<Integer, Reader>>() {
+                    });
+            readers.clear();
+            readers.putAll(loadedReaders);
+        }
+        if (countsFile.exists()) {
+            Map<String, Integer> loadedCounts = mapper.readValue(countsFile,
+                    new TypeReference<Map<String, Integer>>() {
+                    });
+            bookIdCount = loadedCounts.getOrDefault("bookIdCount", 1);
+            readerIdCount = loadedCounts.getOrDefault("readerIdCount", 1);
 
-        Map<Integer, Reader> loadedReaders = mapper.readValue(new File("Readers.json"), new TypeReference<Map<Integer, Reader>>() {});
-        readers.clear();
-        readers.putAll(loadedReaders);
+        } else {
+            int maxBookId = 0;
+            int maxReaderId = 0;
+            for (Book book : catalog.values()) {
 
-        for(Book book : catalog.values()){
-            if(book.getIdReader() == null){
+                if (book.getId() > maxBookId) {
+                    maxBookId = book.getId();
+                }
+            }
+            bookIdCount = maxBookId + 1;
+
+            for (Reader reader : readers.values()) {
+                if (reader.getId() > maxReaderId) {
+                    maxReaderId = reader.getId();
+                }
+            }
+            readerIdCount = maxReaderId + 1;
+        }
+        for (Book book : catalog.values()) {
+            if (book.getIdReader() == null) {
                 continue;
             }
 
             Reader reader = readers.get(book.getIdReader());
-            if(reader == null){
+            if (reader == null) {
                 warnings.add("Book " + book.getId() + " references missing reader " + book.getIdReader());
                 continue;
             }

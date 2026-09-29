@@ -33,3 +33,7 @@ bin/
 
 Catalog.json
 Readers.json
+Counts.json
+
+.idea
+first.iml
