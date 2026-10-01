@@ -67,6 +67,9 @@ public class Library {
     }
     public List<Book> findBooksByAuthor(String author){
 
+        if(author == null){
+            throw new IllegalArgumentException();
+        }
         List<Book> books = new ArrayList<>();
         for (Book book : catalog.values()) {
             if(book.getAuthor() == null){
