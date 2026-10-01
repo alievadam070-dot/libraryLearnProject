@@ -13,35 +13,37 @@ import static org.junit.jupiter.api.Assertions.*;
 class LibraryTest {
 
     private Library library;
+    private final String testTitle = "TestTitle";
+    private final String testAuthor = "TestAuthor";
+    private final String testName = "TestName";
+    private final String testPhone = "TestPhone";
+    private final int testPublicationDate = 2077;
     @BeforeEach
     void setUp() {
      library = new Library();
+
     }
 
 
     @Test
     void addBook_validData_returnsBookWithSameData() {
-        String title = "Crime";
-        String author = "Steve";
-        int publicationDate = 2000;
 
 
-        Book book = library.addBook(title, author, publicationDate);
+
+        Book book = library.addBook(testTitle, testAuthor, testPublicationDate);
 
         assertAll(
-                () -> assertEquals(title, book.getTitle()),
-                () -> assertEquals(author, book.getAuthor()),
-                () -> assertEquals(publicationDate, book.getPublicationDate())
+                () -> assertEquals(testTitle, book.getTitle()),
+                () -> assertEquals(testAuthor, book.getAuthor()),
+                () -> assertEquals(testPublicationDate, book.getPublicationDate())
         );
     }
     @Test
     void addBook_validData_catalogContainsBook() {
-        String title = "Crime";
-        String author = "Steve";
-        int publicationDate = 2000;
 
 
-        Book book = library.addBook(title, author, publicationDate);
+
+        Book book = library.addBook(testTitle, testAuthor, testPublicationDate);
 
         assertSame(book, library.findBookById(book.getId()));
     }
@@ -68,7 +70,7 @@ class LibraryTest {
     @Test
     void removeBook_bookNotFound_throwsException() {
 
-        Book book = library.addBook("TestTitle", "TestAuthor", 1999);
+        Book book = library.addBook(testTitle, testAuthor, testPublicationDate);
         int bookId = book.getId() + 10;
 
 
@@ -84,9 +86,9 @@ class LibraryTest {
     }
 
     @Test
-    void removeBook_bookHasBorrowed_throwsException(){
-        Book book = library.addBook("TestTitle", "TestAuthor", 1999);
-        Reader reader = library.addReader("TestName", "TestPhone");
+    void removeBook_bookHasBorrowed_throwsBookBorrowedException(){
+        Book book = library.addBook(testTitle, testAuthor, testPublicationDate);
+        Reader reader = library.addReader(testName, testPhone);
 
         library.borrowBook(reader.getId(),book.getId());
 
@@ -104,8 +106,8 @@ class LibraryTest {
 
     @Test
     void removeBook_existingBook_bookIsRemovedFromCatalog(){
-        Book book = library.addBook("TestTitle", "TestAuthor", 1999);
-        Reader reader = library.addReader("TestName", "TestPhone");
+        Book book = library.addBook(testTitle, testAuthor, testPublicationDate);
+
 
 
         library.removeBook(book.getId());
@@ -114,4 +116,17 @@ class LibraryTest {
             library.findBookById(book.getId());
         });
     }
+    @Test
+    void findBookById_bookNotFound_throwsBookNotFoundException(){
+        Book book = library.addBook(testTitle,testAuthor,testPublicationDate);
+        int noValidBookId = book.getId() + 10;
+
+        BookNotFoundException thrown = assertThrows(BookNotFoundException.class, () ->{
+            library.findBookById(noValidBookId);
+        });
+
+        assertEquals(noValidBookId, thrown.getBookId());
+    }
+
+
 }
