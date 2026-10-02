@@ -6,6 +6,8 @@ import library.model.Book;
 import library.model.Reader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 
@@ -247,17 +249,14 @@ class LibraryTest {
         );
     }
 
-    @Test
-    void findBooksByTitle_foundBySpaceString_returnEmptyList(){
+    @ParameterizedTest
+    @ValueSource(strings = {"", "  "})
+    void findBooksByTitle_foundBySpaceString_returnEmptyList(String space){
         Book book = library.addBook("  ",testAuthor,testPublicationDate);
 
-        List<Book> books1 = library.findBooksByTitle("");
-        List<Book> books2 = library.findBooksByTitle("  ");
+        List<Book> books1 = library.findBooksByTitle(space);
 
-        assertAll(
-                () -> assertEquals(0, books1.size()),
-                () -> assertEquals(0,books2.size())
-        );
+        assertEquals(0, books1.size());
     }
 
     @Test
