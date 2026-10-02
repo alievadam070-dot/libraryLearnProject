@@ -31,92 +31,105 @@ public class Library {
             .registerModule(new JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-    private int nextIdBook(){
+    private int nextIdBook() {
         return bookIdCount++;
     }
-    private int nextIdReader(){
+
+    private int nextIdReader() {
         return readerIdCount++;
     }
 
 
     /// МЕТОДЫ ДЛЯ РАБОТЫ СО СПИСКОМ КНИГ
 
-    public Book addBook(String title, String author, int publicationDate){
+    public Book addBook(String title, String author, int publicationDate) {
         int id = nextIdBook();
-        Book book = new Book(title, author, publicationDate,id);
+        Book book = new Book(title, author, publicationDate, id);
         catalog.put(id, book);
         return book;
     }
-    public void removeBook(int bookId){
+
+    public void removeBook(int bookId) {
         Book book = catalog.get(bookId);
 
-        if(book == null){
+        if (book == null) {
             throw new BookNotFoundException(bookId);
         }
-        if(book.isBorrowed()){
+        if (book.isBorrowed()) {
             throw new BookBorrowedException(bookId);
         }
         catalog.remove(bookId);
     }
-    public Book findBookById(int bookId){
-        Book book  = catalog.get(bookId);
-            if(book == null){
-                throw new BookNotFoundException(bookId);
-            }
+
+    public Book findBookById(int bookId) {
+        Book book = catalog.get(bookId);
+        if (book == null) {
+            throw new BookNotFoundException(bookId);
+        }
         return book;
     }
-    public List<Book> findBooksByAuthor(String author){
 
-        if(author == null){
+    public List<Book> findBooksByAuthor(String author) {
+
+        if (author == null) {
             throw new IllegalArgumentException();
         }
         List<Book> books = new ArrayList<>();
         for (Book book : catalog.values()) {
-            if(book.getAuthor() == null){
+            if (book.getAuthor() == null) {
                 continue;
             }
-           if(book.getAuthor().equalsIgnoreCase(author)){
+            if (book.getAuthor().equalsIgnoreCase(author)) {
                 books.add(book);
             }
         }
         return books;
     }
-    public List<Book> findBooksByTitle(String title){
+
+    public List<Book> findBooksByTitle(String title) {
+        if(title == null){
+            throw new IllegalArgumentException();
+        }
+
         String lowerTitle = title.toLowerCase();
 
         List<Book> books = new ArrayList<>();
 
+        if(title.isBlank()){
+            return books;
+        }
+
         for (Book book : catalog.values()) {
-            if(book.getTitle() == null){
+            if (book.getTitle() == null) {
                 continue;
             }
 
             String bookLowerTitle = book.getTitle().toLowerCase();
-            if(bookLowerTitle.contains(lowerTitle)){
+            if (bookLowerTitle.contains(lowerTitle)) {
                 books.add(book);
             }
         }
         return books;
     }
 
-    public List<Book> findBooksByYear(int from, int to){
+    public List<Book> findBooksByYear(int from, int to) {
         List<Book> books = new ArrayList<>();
 
-        for(Book book : catalog.values()){
-            if(book.getPublicationDate() >= from && book.getPublicationDate() <= to){
+        for (Book book : catalog.values()) {
+            if (book.getPublicationDate() >= from && book.getPublicationDate() <= to) {
                 books.add(book);
             }
         }
         return books;
     }
 
-    public List<Book> listAllBooks(){
-        return  new ArrayList<>(catalog.values());
+    public List<Book> listAllBooks() {
+        return new ArrayList<>(catalog.values());
     }
 
     /// МЕТОДЫ ДЛЯ РАБОТЫ С СПИСКОМ ПОЛЬЗОВАТЕЛЕЙ
 
-    public Reader addReader(String name,String  phone ){
+    public Reader addReader(String name, String phone) {
 
         int id = nextIdReader();
         Reader reader = new Reader(name, phone, id);
@@ -125,34 +138,35 @@ public class Library {
         return reader;
 
     }
-    public Reader removeReader(int readerId){
+
+    public Reader removeReader(int readerId) {
 
 
-            Reader reader = readers.get(readerId);
+        Reader reader = readers.get(readerId);
 
-            if(reader == null) {
-                throw new ReaderNotFoundException(readerId);
-            }
-            if(!reader.getBookList().isEmpty()) {
-                throw new ReaderHasBorrowedBooksException(readerId, reader.getBookList());
-            }
+        if (reader == null) {
+            throw new ReaderNotFoundException(readerId);
+        }
+        if (!reader.getBookList().isEmpty()) {
+            throw new ReaderHasBorrowedBooksException(readerId, reader.getBookList());
+        }
 
 
-            readers.remove(readerId);
-            return reader;
+        readers.remove(readerId);
+        return reader;
 
 
     }
 
-    public Reader findReaderById(int readerId){
+    public Reader findReaderById(int readerId) {
         Reader reader = readers.get(readerId);
-        if (reader == null){
+        if (reader == null) {
             throw new ReaderNotFoundException(readerId);
         }
         return reader;
     }
 
-    public List<Reader> listAllReaders(){
+    public List<Reader> listAllReaders() {
         return new ArrayList<>(readers.values());
     }
 
@@ -183,25 +197,26 @@ public class Library {
 
 
     }
-    public int returnBookInLib(int readerId, int bookId){
+
+    public int returnBookInLib(int readerId, int bookId) {
 
         Reader reader = readers.get(readerId);
-        if(reader == null){
+        if (reader == null) {
             throw new ReaderNotFoundException(readerId);
         }
 
         Book book = catalog.get(bookId);
-        if(book == null){
+        if (book == null) {
             throw new BookNotFoundException(bookId);
         }
 
-        if(!reader.getBookList().contains(book)){
-           throw new BookNotBorrowedByReaderException(readerId,bookId);
+        if (!reader.getBookList().contains(book)) {
+            throw new BookNotBorrowedByReaderException(readerId, bookId);
         }
 
         long overDueDays = 0;
 
-        if(book.getDueDate() != null && book.getDueDate().isBefore(LocalDate.now())){
+        if (book.getDueDate() != null && book.getDueDate().isBefore(LocalDate.now())) {
             overDueDays = ChronoUnit.DAYS.between(book.getDueDate(), LocalDate.now());
         }
 
@@ -213,18 +228,18 @@ public class Library {
         return (int) overDueDays;
     }
 
-    public List<Book> listBooksByReader(int readerId){
+    public List<Book> listBooksByReader(int readerId) {
         Reader reader = readers.get(readerId);
-        if(reader == null){
+        if (reader == null) {
             throw new ReaderNotFoundException(readerId);
         }
         return new ArrayList<>(reader.getBookList());
     }
 
-    public List<Reader> listReadersWithBooks(){
+    public List<Reader> listReadersWithBooks() {
         List<Reader> readers = new ArrayList<>();
-        for(Reader reader : this.readers.values()){
-            if(reader.getBookList().isEmpty()){
+        for (Reader reader : this.readers.values()) {
+            if (reader.getBookList().isEmpty()) {
                 continue;
             }
             readers.add(reader);
@@ -234,7 +249,7 @@ public class Library {
 
     /// МЕТОДЫ СОХРАНЕНИЕ И ЧТЕНИЯ ДАННЫХ
 
-    public void saveToFile()throws IOException {
+    public void saveToFile() throws IOException {
 
         mapper.writeValue(new File(catalogFileName), catalog);
         mapper.writeValue(new File(readersFileName), readers);
@@ -243,7 +258,7 @@ public class Library {
         idCounts.put("bookIdCount", bookIdCount);
         idCounts.put("readerIdCount", readerIdCount);
 
-        mapper.writeValue(new File(countsFileName), idCounts );
+        mapper.writeValue(new File(countsFileName), idCounts);
 
     }
 

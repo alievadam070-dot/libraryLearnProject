@@ -173,9 +173,9 @@ class LibraryTest {
     }
 
     @Test
-    void findBooksByAuthor_authorsBooksNotInCatalog_emptyList(){
-        library.addBook(testTitle,testAuthor,testPublicationDate);
-        library.addBook(testTitle,testAuthor,testPublicationDate);
+    void findBooksByAuthor_authorsBooksNotInCatalog_emptyList() {
+        library.addBook(testTitle, testAuthor, testPublicationDate);
+        library.addBook(testTitle, testAuthor, testPublicationDate);
 
         List<Book> books = library.findBooksByAuthor("OtherAuthor");
 
@@ -185,12 +185,95 @@ class LibraryTest {
     }
 
     @Test
-    void findBooksByAuthor_nullParameter_throwsIllegalArgumentException(){
-
+    void findBooksByAuthor_nullParameter_throwsIllegalArgumentException() {
 
 
         assertThrows(IllegalArgumentException.class, () -> library.findBooksByAuthor(null));
 
 
     }
+
+    @Test
+    void findBooksByTitle_nullParameter_throwsIllegalArgumentException(){
+        assertThrows(IllegalArgumentException.class, () -> library.findBooksByTitle(null));
+    }
+
+    @Test
+    void findBooksByTitle_differentCase_bookFound(){
+        String titleCaseUpAndLow = "tEsTtItLe";
+        String titleOtherCase = "TESTTitLE";
+        Book book = library.addBook(titleOtherCase,testAuthor,testPublicationDate);
+
+
+        List<Book> books = library.findBooksByTitle(titleCaseUpAndLow);
+
+        assertAll(
+                () -> assertTrue(books.contains(book)),
+                () -> assertEquals(1, books.size())
+        );
+    }
+
+    @Test
+    void findBooksByTitle_foundRightBook_found(){
+        Book book1 = library.addBook(testTitle,testAuthor,testPublicationDate);
+        Book book2 = library.addBook(testTitle,testAuthor,testPublicationDate);
+        Book rightBook = library.addBook("RightTitle",testAuthor,testPublicationDate);
+
+        List<Book> books = library.findBooksByTitle("RightTitle");
+
+        assertAll(
+                () -> assertTrue(books.contains(rightBook)),
+                () -> assertFalse(books.contains(book1)),
+                () -> assertFalse(books.contains(book2)),
+                () -> assertEquals(1, books.size())
+        );
+    }
+
+    @Test
+    void findBooksByTitle_foundByFragment_BooksFound(){
+        Book book1 = library.addBook("test",testAuthor,testPublicationDate);
+        Book book2 = library.addBook("TestTitle",testAuthor,testPublicationDate);
+        Book book3 = library.addBook("titleTest",testAuthor,testPublicationDate);
+        Book book4 = library.addBook("otherBook", testAuthor,testPublicationDate);
+
+        List<Book> books = library.findBooksByTitle("test");
+
+        assertAll(
+                () -> assertTrue(books.contains(book1)),
+                () -> assertTrue(books.contains(book2)),
+                () -> assertTrue(books.contains(book3)),
+                () -> assertFalse(books.contains(book4)),
+                () -> assertEquals(3, books.size())
+        );
+    }
+
+    @Test
+    void findBooksByTitle_foundBySpaceString_returnEmptyList(){
+        Book book = library.addBook("  ",testAuthor,testPublicationDate);
+
+        List<Book> books1 = library.findBooksByTitle("");
+        List<Book> books2 = library.findBooksByTitle("  ");
+
+        assertAll(
+                () -> assertEquals(0, books1.size()),
+                () -> assertEquals(0,books2.size())
+        );
+    }
+
+    @Test
+    void findBooksByTitle_bookCatalogHaveNullTitle_returnListWithTwoBook(){
+        Book bookNullTitle = library.addBook(null, testAuthor,testPublicationDate);
+        Book book = library.addBook(testTitle,testAuthor,testPublicationDate);
+        Book bookNullTitle2 = library.addBook(null, testAuthor,testPublicationDate);
+        Book book2 = library.addBook(testTitle,testAuthor,testPublicationDate);
+
+        List<Book> books = library.findBooksByTitle(testTitle);
+
+        assertAll(
+                () -> assertTrue(books.contains(book)),
+                () -> assertTrue(books.contains(book2)),
+                () -> assertEquals(2, books.size())
+        );
+    }
+
 }
