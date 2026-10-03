@@ -70,11 +70,13 @@ public class Library {
     }
 
     public List<Book> findBooksByAuthor(String author) {
-
+        List<Book> books = new ArrayList<>();
         if (author == null) {
             throw new IllegalArgumentException();
         }
-        List<Book> books = new ArrayList<>();
+        if(author.isBlank()){
+            return books;
+        }
         for (Book book : catalog.values()) {
             if (book.getAuthor() == null) {
                 continue;
@@ -113,6 +115,11 @@ public class Library {
     }
 
     public List<Book> findBooksByYear(int from, int to) {
+
+        if(from > to){
+            throw new InvertedYearRangeException(from,to);
+        }
+
         List<Book> books = new ArrayList<>();
 
         for (Book book : catalog.values()) {

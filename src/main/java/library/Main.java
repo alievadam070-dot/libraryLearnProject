@@ -274,7 +274,12 @@ public class Main {
                         System.out.println("Enter range year");
                         int from = readInt(scanner, "from");
                         int to = readInt(scanner, "to");
-                        System.out.println(library.findBooksByYear(from, to));
+                        try {
+                            System.out.println(library.findBooksByYear(from, to));
+                        }
+                        catch (LibraryException e){
+                            System.out.println(e.getMessage());
+                        }
                         break;
 
                     case 0:
@@ -299,6 +304,8 @@ public class Main {
         scanner.nextLine();
         return value;
     }
+
+
 
 }
 
