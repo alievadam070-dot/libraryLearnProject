@@ -2,11 +2,14 @@ package library.service;
 
 import library.exception.BookBorrowedException;
 import library.exception.BookNotFoundException;
+import library.exception.InvertedYearRangeException;
 import library.model.Book;
 import library.model.Reader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
@@ -251,19 +254,19 @@ class LibraryTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"", "  "})
-    void findBooksByTitle_foundBySpaceString_returnEmptyList(String space){
-        Book book = library.addBook("  ",testAuthor,testPublicationDate);
+    void findBooksByTitle_foundByEmptyString_returnEmptyList(String empty){
+       library.addBook("  ",testAuthor,testPublicationDate);
 
-        List<Book> books1 = library.findBooksByTitle(space);
+        List<Book> books1 = library.findBooksByTitle(empty);
 
-        assertEquals(0, books1.size());
+        assertTrue(books1.isEmpty());
     }
 
     @Test
     void findBooksByTitle_bookCatalogHaveNullTitle_returnListWithTwoBook(){
-        Book bookNullTitle = library.addBook(null, testAuthor,testPublicationDate);
+        library.addBook(null, testAuthor,testPublicationDate);
         Book book = library.addBook(testTitle,testAuthor,testPublicationDate);
-        Book bookNullTitle2 = library.addBook(null, testAuthor,testPublicationDate);
+        library.addBook(null, testAuthor,testPublicationDate);
         Book book2 = library.addBook(testTitle,testAuthor,testPublicationDate);
 
         List<Book> books = library.findBooksByTitle(testTitle);
@@ -273,6 +276,52 @@ class LibraryTest {
                 () -> assertTrue(books.contains(book2)),
                 () -> assertEquals(2, books.size())
         );
+    }
+
+    @Test
+    void findBooksByYear_invertedRange_throwsInvertedYearRangeException(){
+        int from = 1000;
+        int to = 1;
+
+        InvertedYearRangeException thrown = assertThrows(InvertedYearRangeException.class, () -> library.findBooksByYear(from,to));
+                assertAll(
+                        () -> assertEquals(from, thrown.getFrom()),
+                        () -> assertEquals(to, thrown.getTo())
+             );
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {2008,2020,2015})
+    void findBooksByYear_findByCorrectRange_listIncludesBookFromRange(int year){
+        int from = 2008;
+        int to = 2020;
+        Book book = library.addBook(testTitle,testAuthor,2025);
+        Book book2= library.addBook(testTitle,testAuthor,year);
+        Book book3 = library.addBook(testTitle,testAuthor,year);
+        Book book4 = library.addBook(testTitle,testAuthor,year);
+
+
+        List<Book> books = library.findBooksByYear(from,to);
+
+        assertAll(
+                () -> assertEquals(3,books.size()),
+                () -> assertTrue(books.contains(book2)),
+                () -> assertTrue(books.contains(book3)),
+                () -> assertTrue(books.contains(book4)),
+                () -> assertFalse(books.contains(book))
+        );
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {1000,3000, 2007, 2021})
+    void findBooksByYear_findByOutRange_returnEmptyList(int year){
+        int from = 2008;
+        int to = 2020;
+        library.addBook(testTitle,testAuthor,year);
+
+        List<Book> books = library.findBooksByYear(from, to);
+
+        assertTrue(books.isEmpty());
     }
 
 }
