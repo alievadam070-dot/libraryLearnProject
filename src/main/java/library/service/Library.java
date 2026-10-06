@@ -138,6 +138,10 @@ public class Library {
 
     public Reader addReader(String name, String phone) {
 
+        if(name == null || phone == null){
+            throw new IllegalArgumentException();
+        }
+
         int id = nextIdReader();
         Reader reader = new Reader(name, phone, id);
         readers.put(id, reader);
@@ -147,8 +151,6 @@ public class Library {
     }
 
     public Reader removeReader(int readerId) {
-
-
         Reader reader = readers.get(readerId);
 
         if (reader == null) {
@@ -161,8 +163,6 @@ public class Library {
 
         readers.remove(readerId);
         return reader;
-
-
     }
 
     public Reader findReaderById(int readerId) {
