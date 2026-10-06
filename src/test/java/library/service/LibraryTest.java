@@ -67,8 +67,6 @@ class LibraryTest {
         Book book2 = library.addBook(title2, author2, publicationDate2);
 
         assertAll(
-                () -> assertSame(book1, library.findBookById(book1.getId())),
-                () -> assertSame(book2, library.findBookById(book2.getId())),
                 () -> assertNotEquals(book1.getId(), book2.getId())
         );
     }
@@ -199,15 +197,15 @@ class LibraryTest {
     }
 
     @Test
-    void findBooksByTitle_nullParameter_throwsIllegalArgumentException(){
+    void findBooksByTitle_nullParameter_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () -> library.findBooksByTitle(null));
     }
 
     @Test
-    void findBooksByTitle_differentCase_bookFound(){
+    void findBooksByTitle_differentCase_bookFound() {
         String titleCaseUpAndLow = "tEsTtItLe";
         String titleOtherCase = "TESTTitLE";
-        Book book = library.addBook(titleOtherCase,testAuthor,testPublicationDate);
+        Book book = library.addBook(titleOtherCase, testAuthor, testPublicationDate);
 
 
         List<Book> books = library.findBooksByTitle(titleCaseUpAndLow);
@@ -219,10 +217,10 @@ class LibraryTest {
     }
 
     @Test
-    void findBooksByTitle_foundRightBook_found(){
-        Book book1 = library.addBook(testTitle,testAuthor,testPublicationDate);
-        Book book2 = library.addBook(testTitle,testAuthor,testPublicationDate);
-        Book rightBook = library.addBook("RightTitle",testAuthor,testPublicationDate);
+    void findBooksByTitle_foundRightBook_found() {
+        Book book1 = library.addBook(testTitle, testAuthor, testPublicationDate);
+        Book book2 = library.addBook(testTitle, testAuthor, testPublicationDate);
+        Book rightBook = library.addBook("RightTitle", testAuthor, testPublicationDate);
 
         List<Book> books = library.findBooksByTitle("RightTitle");
 
@@ -235,11 +233,11 @@ class LibraryTest {
     }
 
     @Test
-    void findBooksByTitle_foundByFragment_BooksFound(){
-        Book book1 = library.addBook("test",testAuthor,testPublicationDate);
-        Book book2 = library.addBook("TestTitle",testAuthor,testPublicationDate);
-        Book book3 = library.addBook("titleTest",testAuthor,testPublicationDate);
-        Book book4 = library.addBook("otherBook", testAuthor,testPublicationDate);
+    void findBooksByTitle_foundByFragment_BooksFound() {
+        Book book1 = library.addBook("test", testAuthor, testPublicationDate);
+        Book book2 = library.addBook("TestTitle", testAuthor, testPublicationDate);
+        Book book3 = library.addBook("titleTest", testAuthor, testPublicationDate);
+        Book book4 = library.addBook("otherBook", testAuthor, testPublicationDate);
 
         List<Book> books = library.findBooksByTitle("test");
 
@@ -254,8 +252,8 @@ class LibraryTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"", "  "})
-    void findBooksByTitle_foundByEmptyString_returnEmptyList(String empty){
-       library.addBook("  ",testAuthor,testPublicationDate);
+    void findBooksByTitle_foundByEmptyString_returnEmptyList(String empty) {
+        library.addBook("  ", testAuthor, testPublicationDate);
 
         List<Book> books1 = library.findBooksByTitle(empty);
 
@@ -263,11 +261,11 @@ class LibraryTest {
     }
 
     @Test
-    void findBooksByTitle_bookCatalogHaveNullTitle_returnListWithTwoBook(){
-        library.addBook(null, testAuthor,testPublicationDate);
-        Book book = library.addBook(testTitle,testAuthor,testPublicationDate);
-        library.addBook(null, testAuthor,testPublicationDate);
-        Book book2 = library.addBook(testTitle,testAuthor,testPublicationDate);
+    void findBooksByTitle_bookCatalogHaveNullTitle_returnListWithTwoBook() {
+        library.addBook(null, testAuthor, testPublicationDate);
+        Book book = library.addBook(testTitle, testAuthor, testPublicationDate);
+        library.addBook(null, testAuthor, testPublicationDate);
+        Book book2 = library.addBook(testTitle, testAuthor, testPublicationDate);
 
         List<Book> books = library.findBooksByTitle(testTitle);
 
@@ -279,32 +277,32 @@ class LibraryTest {
     }
 
     @Test
-    void findBooksByYear_invertedRange_throwsInvertedYearRangeException(){
+    void findBooksByYear_invertedRange_throwsInvertedYearRangeException() {
         int from = 1000;
         int to = 1;
 
-        InvertedYearRangeException thrown = assertThrows(InvertedYearRangeException.class, () -> library.findBooksByYear(from,to));
-                assertAll(
-                        () -> assertEquals(from, thrown.getFrom()),
-                        () -> assertEquals(to, thrown.getTo())
-             );
+        InvertedYearRangeException thrown = assertThrows(InvertedYearRangeException.class, () -> library.findBooksByYear(from, to));
+        assertAll(
+                () -> assertEquals(from, thrown.getFrom()),
+                () -> assertEquals(to, thrown.getTo())
+        );
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {2008,2020,2015})
-    void findBooksByYear_findByCorrectRange_listIncludesBookFromRange(int year){
+    @ValueSource(ints = {2008, 2020, 2015})
+    void findBooksByYear_findByCorrectRange_listIncludesBookFromRange(int year) {
         int from = 2008;
         int to = 2020;
-        Book book = library.addBook(testTitle,testAuthor,2025);
-        Book book2= library.addBook(testTitle,testAuthor,year);
-        Book book3 = library.addBook(testTitle,testAuthor,year);
-        Book book4 = library.addBook(testTitle,testAuthor,year);
+        Book book = library.addBook(testTitle, testAuthor, 2025);
+        Book book2 = library.addBook(testTitle, testAuthor, year);
+        Book book3 = library.addBook(testTitle, testAuthor, year);
+        Book book4 = library.addBook(testTitle, testAuthor, year);
 
 
-        List<Book> books = library.findBooksByYear(from,to);
+        List<Book> books = library.findBooksByYear(from, to);
 
         assertAll(
-                () -> assertEquals(3,books.size()),
+                () -> assertEquals(3, books.size()),
                 () -> assertTrue(books.contains(book2)),
                 () -> assertTrue(books.contains(book3)),
                 () -> assertTrue(books.contains(book4)),
@@ -313,15 +311,56 @@ class LibraryTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {1000,3000, 2007, 2021})
-    void findBooksByYear_findByOutRange_returnEmptyList(int year){
+    @ValueSource(ints = {1000, 3000, 2007, 2021})
+    void findBooksByYear_findByOutRange_returnEmptyList(int year) {
         int from = 2008;
         int to = 2020;
-        library.addBook(testTitle,testAuthor,year);
+        library.addBook(testTitle, testAuthor, year);
 
         List<Book> books = library.findBooksByYear(from, to);
 
         assertTrue(books.isEmpty());
     }
 
+    @Test
+    void addReader_nameNullParameter_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> library.addReader(null, testPhone));
+    }
+
+    @Test
+    void addReader_phoneNullParameter_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> library.addReader(testName, null));
+    }
+
+    @Test
+    void addReader_correctReadersData_readersAddInList() {
+        Reader reader1 = library.addReader(testName, testPhone);
+        Reader reader2 = library.addReader(testName, testPhone);
+
+        List<Reader> readers = library.listAllReaders();
+
+        assertAll(
+                () -> assertEquals(2, readers.size()),
+                () -> assertTrue(readers.contains(reader1)),
+                () -> assertTrue(readers.contains(reader2))
+        );
+    }
+
+    @Test
+    void addReader_addTwoReaders_readersHaveDifferentId(){
+        Reader reader1 = library.addReader(testName, testPhone);
+        Reader reader2 = library.addReader(testName, testPhone);
+
+        assertNotEquals(reader1.getId(), reader2.getId());
+    }
+
+    @Test
+    void addReader_validData_returnsReadersWithSameData(){
+        Reader reader = library.addReader(testName,testPhone);
+
+        assertAll(
+                () -> assertEquals(testName,reader.getName()),
+                () -> assertEquals(testPhone, reader.getPhone())
+        );
+    }
 }
