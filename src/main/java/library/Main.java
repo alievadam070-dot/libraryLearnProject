@@ -294,8 +294,8 @@ public class Main {
         }
     }
 
-    public static int readInt(Scanner scanner, String promt){
-        System.out.println(promt);
+    public static int readInt(Scanner scanner, String prompt){
+        System.out.println(prompt);
         while(!scanner.hasNextInt()){
             System.out.println("Invalid input, please enter a number.");
             scanner.nextLine();
