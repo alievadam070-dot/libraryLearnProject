@@ -408,4 +408,24 @@ class LibraryTest {
                 () -> assertTrue(library.listAllReaders().contains(reader2))
         );
     }
+
+    @Test
+    void findReaderById_readerNotFound_throwsReaderNotFoundException(){
+        Reader reader = library.addReader(testName,testPhone);
+
+
+        ReaderNotFoundException thrown = assertThrows(ReaderNotFoundException.class, () -> library.findReaderById(reader.getId() + 10));
+
+        assertEquals(reader.getId() + 10,thrown.getReaderId());
+    }
+
+    @Test
+    void findReaderById_commonCase_readerFind(){
+        Reader reader = library.addReader(testName,testPhone);
+        library.addReader("  ","  ");
+
+        Reader readerFindById = library.findReaderById(reader.getId());
+
+        assertSame(reader,readerFindById);
+    }
 }
