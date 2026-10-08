@@ -1,8 +1,6 @@
 package library.service;
 
-import library.exception.BookBorrowedException;
-import library.exception.BookNotFoundException;
-import library.exception.InvertedYearRangeException;
+import library.exception.*;
 import library.model.Book;
 import library.model.Reader;
 import org.junit.jupiter.api.BeforeEach;
@@ -361,6 +359,53 @@ class LibraryTest {
         assertAll(
                 () -> assertEquals(testName,reader.getName()),
                 () -> assertEquals(testPhone, reader.getPhone())
+        );
+    }
+
+    @Test
+    void removeReader_readerNotFound_throwsReaderNotFoundException(){
+       Reader reader = library.addReader(testName,testPhone);
+
+
+        ReaderNotFoundException thrown = assertThrows(ReaderNotFoundException.class, () -> library.removeReader(reader.getId() + 10));
+        List<Reader> readers = library.listAllReaders();
+
+        assertAll(
+                () -> assertEquals(reader.getId() + 10, thrown.getReaderId()),
+                () -> assertTrue(readers.contains(reader))
+        );
+
+
+    }
+    @Test
+    void removeReader_readerHasBorrowedBooks_throwsReaderHasBorrowedBooksException(){
+        Reader reader1 = library.addReader(testName,testPhone);
+        Reader reader2 = library.addReader(testName,testPhone);
+        Book book1 = library.addBook(testTitle,testAuthor,testPublicationDate);
+        Book book2 = library.addBook(testTitle,testAuthor,testPublicationDate);
+        library.borrowBook(reader1.getId(),book1.getId());
+        library.borrowBook(reader1.getId(),book2.getId());
+
+        ReaderHasBorrowedBooksException thrown = assertThrows(ReaderHasBorrowedBooksException.class, () -> library.removeReader(reader1.getId()));
+
+
+        assertAll(
+                () -> assertTrue(library.listAllReaders().contains(reader1)),
+                () -> assertTrue(library.listAllReaders().contains(reader2)),
+                () -> assertEquals(reader1.getId(),thrown.getReaderId())
+        );
+    }
+
+    @Test
+    void removeReader_commonCase_readerRemoved(){
+        Reader reader1 = library.addReader(testName,testPhone);
+        Reader reader2 = library.addReader(testName,testPhone);
+
+        library.removeReader(reader1.getId());
+
+        assertAll(
+                () -> assertEquals(1, library.listAllReaders().size()),
+                () -> assertTrue(library.listAllReaders().contains(reader2))
         );
     }
 }
