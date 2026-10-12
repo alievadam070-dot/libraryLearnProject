@@ -201,8 +201,6 @@ public class Library {
         book.setIssueDate(issueDate);
         book.setDueDate(issueDate.plusDays(14));
         reader.takeBook(book);
-
-
     }
 
     public int returnBookInLib(int readerId, int bookId) {
