@@ -488,4 +488,84 @@ class LibraryTest {
                 () -> assertFalse(books.contains(book2))
         );
     }
+
+    @Test
+    void returnBookInLib_readerNotFound_throwsReaderNotFoundException(){
+      Book book = library.addBook(testTitle,testAuthor,testPublicationDate);
+      Reader reader = library.addReader(testName,testPhone);
+      library.borrowBook(reader.getId(),book.getId());
+
+
+        ReaderNotFoundException thrown = assertThrows(ReaderNotFoundException.class, () -> library.returnBookInLib(-1, book.getId()));
+
+        assertAll(
+                () -> assertEquals(-1, thrown.getReaderId()),
+                () ->assertTrue(book.isBorrowed())
+        );
+
+    }
+
+    @Test
+    void returnBookInLib_bookNotFound_throwsBookNotFoundException() {
+        Reader reader = library.addReader(testName, testPhone);
+        Book book = library.addBook(testTitle,testAuthor,testPublicationDate);
+        library.borrowBook(reader.getId(),book.getId());
+
+        BookNotFoundException thrown = assertThrows(BookNotFoundException.class, () -> library.returnBookInLib(reader.getId(), -1));
+        List<Book> books = library.listBooksByReader(reader.getId());
+
+        assertAll(
+                () -> assertEquals(-1, thrown.getBookId()),
+                () -> assertTrue(books.contains(book)),
+                () -> assertEquals(1, books.size())
+        );
+    }
+
+    @Test
+    void returnBookInLib_bookNotBorrowed_throwsBookNotBorrowedException(){
+        Book book = library.addBook(testTitle,testAuthor,testPublicationDate);
+        Reader reader = library.addReader(testName,testPhone);
+        Book bookBorrow = library.addBook(testTitle,testAuthor,testPublicationDate);
+        library.borrowBook(reader.getId(),bookBorrow.getId());
+
+        BookNotBorrowedByReaderException thrown = assertThrows(BookNotBorrowedByReaderException.class, () -> library.returnBookInLib(reader.getId(),book.getId()));
+
+
+        assertAll(
+                () -> assertFalse(book.isBorrowed()),
+                () -> assertEquals(book.getId(),thrown.getBookId()),
+                () -> assertEquals(reader.getId(),thrown.getReaderId())
+        );
+    }
+
+    @Test
+    void returnBookInLib_overDueDate_returnCorrectDueDate(){
+        Reader reader = library.addReader(testName, testPhone);
+        Book book = library.addBook(testTitle,testAuthor,testPublicationDate);
+        library.borrowBook(reader.getId(),book.getId());
+
+        int overDueDate = library.returnBookInLib(reader.getId(),book.getId());
+
+
+        assertEquals(0, overDueDate);
+    }
+
+    @Test
+    void returnBookInLib_commonCase_allParametersSet(){
+        Reader reader = library.addReader(testName, testPhone);
+        Book book = library.addBook(testTitle,testAuthor,testPublicationDate);
+        library.borrowBook(reader.getId(),book.getId());
+
+
+        library.returnBookInLib(reader.getId(),book.getId());
+        List<Book> books = reader.getBookList();
+
+        assertAll(
+                () -> assertFalse(book.isBorrowed()),
+                () -> assertNull(book.getIdReader()),
+                () -> assertNull(book.getIssueDate()),
+                () -> assertNull(book.getDueDate()),
+                () -> assertFalse(books.contains(book))
+        );
+    }
 }
