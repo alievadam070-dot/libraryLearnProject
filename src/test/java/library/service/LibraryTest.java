@@ -568,4 +568,108 @@ class LibraryTest {
                 () -> assertFalse(books.contains(book))
         );
     }
+
+    @Test
+    void listBooksByReader_readerNotFound_throwsReaderNotFoundException(){
+        ReaderNotFoundException thrown = assertThrows(ReaderNotFoundException.class, () -> library.listBooksByReader(-1));
+
+        assertEquals(-1, thrown.getReaderId());
+    }
+    @Test
+    void listBooksByReader_readerHaveBooks_returnListWithBooks(){
+        Book book1 = library.addBook(testTitle,testAuthor,testPublicationDate);
+        Book book2 = library.addBook(testTitle,testAuthor,testPublicationDate);
+        library.addBook(testTitle,testAuthor,testPublicationDate);
+        Reader reader = library.addReader(testName,testPhone);
+        library.borrowBook(reader.getId(),book1.getId());
+        library.borrowBook(reader.getId(),book2.getId());
+
+        List<Book> books = library.listBooksByReader(reader.getId());
+
+        assertAll(
+                () -> assertTrue(books.contains(book1)),
+                () -> assertTrue(books.contains(book2)),
+                () -> assertEquals(2,books.size())
+        );
+    }
+    @Test
+    void listReadersWithBooks_returnsReadersWhoHaveBooks() {
+        Reader reader1 = library.addReader(testName, testPhone);
+        Reader reader2 = library.addReader(testName, testPhone);
+        Reader reader3 = library.addReader(testName, testPhone);
+
+        Book book1 = library.addBook(testTitle, testAuthor, testPublicationDate);
+        Book book2 = library.addBook(testTitle, testAuthor, testPublicationDate);
+
+        library.borrowBook(reader1.getId(), book1.getId());
+        library.borrowBook(reader3.getId(), book2.getId());
+
+        List<Reader> result = library.listReadersWithBooks();
+
+        assertAll(
+                () -> assertEquals(2, result.size()),
+                () -> assertTrue(result.contains(reader1)),
+                () -> assertTrue(result.contains(reader3)),
+                () -> assertFalse(result.contains(reader2))
+        );
+    }
+
+    @Test
+    void listReadersWithBooks_returnsEmptyListWhenNoReadersExist() {
+        List<Reader> result = library.listReadersWithBooks();
+
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertTrue(result.isEmpty())
+        );
+    }
+
+    @Test
+    void listReadersWithBooks_returnsEmptyListWhenNoReadersHaveBooks() {
+        library.addReader(testName, testPhone);
+        library.addReader(testName, testPhone);
+
+        List<Reader> result = library.listReadersWithBooks();
+
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertTrue(result.isEmpty())
+        );
+    }
+
+    @Test
+    void listReadersWithBooks_returnsAllReadersWhenEveryoneHasBooks() {
+        Reader reader1 = library.addReader(testName, testPhone);
+        Reader reader2 = library.addReader(testName, testPhone);
+
+        Book book1 = library.addBook(testTitle, testAuthor, testPublicationDate);
+        Book book2 = library.addBook(testTitle, testAuthor, testPublicationDate);
+
+        library.borrowBook(reader1.getId(), book1.getId());
+        library.borrowBook(reader2.getId(), book2.getId());
+
+
+        List<Reader> result = library.listReadersWithBooks();
+
+        assertAll(
+                () -> assertEquals(2, result.size()),
+                () -> assertTrue(result.containsAll(List.of(reader1, reader2)))
+        );
+    }
+
+    @Test
+    void listReadersWithBooks_doesNotReturnReaderAfterReturningAllBooks() {
+
+        Reader reader = library.addReader(testName, testPhone);
+        Book book = library.addBook(testTitle, testAuthor, testPublicationDate);
+
+        library.borrowBook(reader.getId(), book.getId());
+        library.returnBookInLib(reader.getId(), book.getId());
+
+
+        List<Reader> result = library.listReadersWithBooks();
+
+
+        assertTrue(result.isEmpty());
+    }
 }
