@@ -538,16 +538,18 @@ class LibraryTest {
         );
     }
 
-    @Test
-    void returnBookInLib_overDueDate_returnCorrectDueDate(){
+    @ParameterizedTest
+    @ValueSource(ints = {0,1,14})
+    void returnBookInLib_overDueDays_dueDaysCounter(int days){
         Reader reader = library.addReader(testName, testPhone);
         Book book = library.addBook(testTitle,testAuthor,testPublicationDate);
         library.borrowBook(reader.getId(),book.getId());
+        book.setDueDate(book.getIssueDate().minusDays(days));
 
-        int overDueDate = library.returnBookInLib(reader.getId(),book.getId());
+        int overDueDays = library.returnBookInLib(reader.getId(),book.getId());
 
 
-        assertEquals(0, overDueDate);
+        assertEquals(days, overDueDays);
     }
 
     @Test
