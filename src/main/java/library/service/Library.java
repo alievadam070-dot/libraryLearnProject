@@ -18,14 +18,23 @@ import java.util.List;
 import java.util.Map;
 
 public class Library {
+
+    public Library(File dataDir){
+        this.catalogFile = new File(dataDir, "Catalog.json");
+        this.readersFile = new File(dataDir, "Readers.json");
+        this.countsFile = new File(dataDir, "Counts.json");
+    }
+    public Library(){
+
+    }
     private final Map<Integer, Book> catalog = new HashMap<>();
     private final Map<Integer, Reader> readers = new HashMap<>();
     private int bookIdCount = 1;
     private int readerIdCount = 1;
 
-    private final String catalogFileName = "Catalog.json";
-    private final String readersFileName = "Readers.json";
-    private final String countsFileName = "Counts.json";
+    private  File catalogFile;
+    private  File readersFile;
+    private  File countsFile;
 
     private final ObjectMapper mapper = new ObjectMapper()
             .registerModule(new JavaTimeModule())
@@ -256,29 +265,29 @@ public class Library {
 
     public void saveToFile() throws IOException {
 
-        mapper.writeValue(new File(catalogFileName), catalog);
-        mapper.writeValue(new File(readersFileName), readers);
+        mapper.writeValue(catalogFile, catalog);
+        mapper.writeValue(readersFile, readers);
 
         Map<String, Integer> idCounts = new HashMap<>();
         idCounts.put("bookIdCount", bookIdCount);
         idCounts.put("readerIdCount", readerIdCount);
 
-        mapper.writeValue(new File(countsFileName), idCounts);
+        mapper.writeValue(countsFile, idCounts);
 
     }
 
     public List<String> loadFromFile() throws IOException {
 
-        File catalogFile = new File(catalogFileName);
-        File readersFile = new File(readersFileName);
-        File countsFile = new File(countsFileName);
+        File catalogFile = this.catalogFile;
+        File readersFile = this.readersFile;
+        File countsFile = this.countsFile;
 
         List<String> warnings = new ArrayList<>();
 
 
         if (catalogFile.exists()) {
             Map<Integer, Book> loadedBooks = mapper.readValue(catalogFile,
-                    new TypeReference<Map<Integer, Book>>() {
+                    new TypeReference<>() {
                     });
             catalog.clear();
             catalog.putAll(loadedBooks);
@@ -286,14 +295,14 @@ public class Library {
 
         if (readersFile.exists()) {
             Map<Integer, Reader> loadedReaders = mapper.readValue(readersFile,
-                    new TypeReference<Map<Integer, Reader>>() {
+                    new TypeReference<>() {
                     });
             readers.clear();
             readers.putAll(loadedReaders);
         }
         if (countsFile.exists()) {
             Map<String, Integer> loadedCounts = mapper.readValue(countsFile,
-                    new TypeReference<Map<String, Integer>>() {
+                    new TypeReference<>() {
                     });
             bookIdCount = loadedCounts.getOrDefault("bookIdCount", 1);
             readerIdCount = loadedCounts.getOrDefault("readerIdCount", 1);
