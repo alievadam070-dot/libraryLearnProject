@@ -18,23 +18,23 @@ import java.util.List;
 import java.util.Map;
 
 public class Library {
-
+    static final private File _DefaultDataDir = new File(".");
     public Library(File dataDir){
         this.catalogFile = new File(dataDir, "Catalog.json");
         this.readersFile = new File(dataDir, "Readers.json");
         this.countsFile = new File(dataDir, "Counts.json");
     }
     public Library(){
-
+        this(_DefaultDataDir);
     }
     private final Map<Integer, Book> catalog = new HashMap<>();
     private final Map<Integer, Reader> readers = new HashMap<>();
     private int bookIdCount = 1;
     private int readerIdCount = 1;
 
-    private  File catalogFile;
-    private  File readersFile;
-    private  File countsFile;
+    private final File catalogFile;
+    private final File readersFile;
+    private final File countsFile;
 
     private final ObjectMapper mapper = new ObjectMapper()
             .registerModule(new JavaTimeModule())
