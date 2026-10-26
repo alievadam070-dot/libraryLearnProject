@@ -268,22 +268,22 @@ public class Library {
         mapper.writeValue(catalogFile, catalog);
         mapper.writeValue(readersFile, readers);
 
+
         Map<String, Integer> idCounts = new HashMap<>();
         idCounts.put("bookIdCount", bookIdCount);
         idCounts.put("readerIdCount", readerIdCount);
 
         mapper.writeValue(countsFile, idCounts);
 
+
     }
 
     public List<String> loadFromFile() throws IOException {
 
-        File catalogFile = this.catalogFile;
-        File readersFile = this.readersFile;
-        File countsFile = this.countsFile;
-
         List<String> warnings = new ArrayList<>();
 
+        int maxBookId = 0;
+        int maxReaderId = 0;
 
         if (catalogFile.exists()) {
             Map<Integer, Book> loadedBooks = mapper.readValue(catalogFile,
@@ -300,30 +300,27 @@ public class Library {
             readers.clear();
             readers.putAll(loadedReaders);
         }
+
+        for (Reader reader : readers.values()) {
+            if (reader.getId() > maxReaderId) {
+                maxReaderId = reader.getId();
+            }
+        }
+        for (Book book : catalog.values()) {
+            if (book.getId() > maxBookId) {
+                maxBookId = book.getId();
+            }
+        }
+        bookIdCount = maxBookId + 1;
+        readerIdCount = maxReaderId + 1;
+
         if (countsFile.exists()) {
             Map<String, Integer> loadedCounts = mapper.readValue(countsFile,
                     new TypeReference<>() {
                     });
-            bookIdCount = loadedCounts.getOrDefault("bookIdCount", 1);
-            readerIdCount = loadedCounts.getOrDefault("readerIdCount", 1);
+            bookIdCount = loadedCounts.getOrDefault("bookIdCount", bookIdCount);
+            readerIdCount = loadedCounts.getOrDefault("readerIdCount", readerIdCount);
 
-        } else {
-            int maxBookId = 0;
-            int maxReaderId = 0;
-            for (Book book : catalog.values()) {
-
-                if (book.getId() > maxBookId) {
-                    maxBookId = book.getId();
-                }
-            }
-            bookIdCount = maxBookId + 1;
-
-            for (Reader reader : readers.values()) {
-                if (reader.getId() > maxReaderId) {
-                    maxReaderId = reader.getId();
-                }
-            }
-            readerIdCount = maxReaderId + 1;
         }
         for (Book book : catalog.values()) {
             if (book.getIdReader() == null) {
