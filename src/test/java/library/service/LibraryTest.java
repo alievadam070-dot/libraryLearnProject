@@ -1,5 +1,9 @@
 package library.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import library.exception.*;
 import library.model.Book;
 import library.model.Reader;
@@ -7,14 +11,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -26,6 +30,7 @@ class LibraryTest {
     private final String testName = "TestName";
     private final String testPhone = "TestPhone";
     private final int testPublicationDate = 2077;
+    private ObjectMapper mapper;
 
     @TempDir
     File tempDir;
@@ -33,6 +38,9 @@ class LibraryTest {
     @BeforeEach
     void setUp() {
         library = new Library(tempDir);
+        mapper = new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
 
@@ -693,4 +701,400 @@ class LibraryTest {
                 () -> assertTrue(new File(tempDir, "Counts.json").exists())
         );
     }
+
+    @Test
+    void saveToFile_readCatalogFile_catalogHaveValidData() throws IOException{
+        Book book1 = library.addBook("Book1Title","Book1Author",1111);
+        Book book2 = library.addBook("Book2Title","Book2Author",2222);
+        Reader reader = library.addReader(testName,testPhone);
+        library.borrowBook(reader.getId(),book1.getId());
+
+        library.saveToFile();
+
+        Map<Integer,Book> catalog = mapper.readValue(new File(tempDir,"Catalog.json"), new TypeReference<>() {
+        });
+
+        assertAll(
+                () -> assertTrue(catalog.containsKey(book1.getId())),
+                () -> assertTrue(catalog.containsKey(book2.getId())),
+                () -> assertEquals(book1.getTitle(),catalog.get(book1.getId()).getTitle()),
+                () -> assertEquals(book2.getTitle(),catalog.get(book2.getId()).getTitle()),
+                () -> assertEquals(book1.getAuthor(), catalog.get(book1.getId()).getAuthor()),
+                () -> assertEquals(book2.getAuthor(), catalog.get(book2.getId()).getAuthor()),
+                () -> assertEquals(book1.getPublicationDate(), catalog.get(book1.getId()).getPublicationDate()),
+                () -> assertEquals(book2.getPublicationDate(), catalog.get(book2.getId()).getPublicationDate()),
+                () -> assertEquals(reader.getId(), catalog.get(book1.getId()).getIdReader()),
+                () -> assertTrue(catalog.get(book1.getId()).isBorrowed()),
+                () -> assertFalse(catalog.get(book2.getId()).isBorrowed()),
+                () -> assertNull(catalog.get(book2.getId()).getIdReader()),
+                () -> assertEquals(2, catalog.size())
+        );
+    }
+
+    @Test
+    void saveToFile_readReadersFile_readersHaveValidData() throws IOException{
+        Reader reader1 = library.addReader("Reader1Name", "Reader1Phone");
+        Reader reader2 = library.addReader("Reader2Name", "Reader2Phone");
+
+
+        library.saveToFile();
+
+        Map<Integer, Reader> readerMap = mapper.readValue(new File(tempDir, "Readers.json"), new TypeReference<>() {
+        });
+
+        assertAll(
+                () -> assertTrue(readerMap.containsKey(reader1.getId())),
+                () -> assertTrue(readerMap.containsKey(reader2.getId())),
+                () -> assertEquals(reader1.getName(), readerMap.get(reader1.getId()).getName()),
+                () -> assertEquals(reader2.getName(), readerMap.get(reader2.getId()).getName()),
+                () -> assertEquals(reader1.getPhone(), readerMap.get(reader1.getId()).getPhone()),
+                () -> assertEquals(reader2.getPhone(), readerMap.get(reader2.getId()).getPhone())
+        );
+    }
+
+    @Test
+    void saveToFile_readCountsFile_countsHaveValidData() throws IOException{
+        library.addBook(testTitle,testAuthor,testPublicationDate);
+        library.addBook(testTitle,testAuthor,testPublicationDate);
+        library.addReader(testName,testPhone);
+        library.addReader(testName,testPhone);
+
+
+        library.saveToFile();
+
+        Map<String,Integer> idCounts = mapper.readValue(new File(tempDir, "Counts.json"), new TypeReference<>() {
+        });
+
+        assertAll(
+                () -> assertEquals(3, idCounts.get("bookIdCount")),
+                () -> assertEquals(3, idCounts.get("readerIdCount"))
+        );
+    }
+
+
+    @Test
+    void saveAndLoad_roundTrip_dataCorrectSaveAndLoad() throws IOException{
+        Book book1 = library.addBook("Book1Title", "Book1Author", 1111);
+        Book book2 = library.addBook("Book2Title", "Book2Author", 2222);
+        Reader reader1 = library.addReader("Reader1Name", "Reader1Phone");
+        Reader reader2 = library.addReader("Reader2Name", "Reader2Phone");
+        library.borrowBook(reader1.getId(),book1.getId());
+
+        library.saveToFile();
+
+        Library newLib = new Library(tempDir);
+        newLib.loadFromFile();
+
+        Book loadedBook1 = newLib.findBookById(book1.getId());
+        Book loadedBook2 = newLib.findBookById(book2.getId());
+        Reader loadedReader1 = newLib.findReaderById(reader1.getId());
+        Reader loadedReader2 = newLib.findReaderById(reader2.getId());
+
+        assertAll(
+                () -> assertEquals(book1.getTitle(),loadedBook1.getTitle()),
+                () -> assertEquals(book2.getTitle(),loadedBook2.getTitle()),
+                () -> assertEquals(book1.getAuthor(), loadedBook1.getAuthor()),
+                () -> assertEquals(book2.getAuthor(), loadedBook2.getAuthor()),
+                () -> assertEquals(book1.getPublicationDate(), loadedBook1.getPublicationDate()),
+                () -> assertEquals(book2.getPublicationDate(), loadedBook2.getPublicationDate()),
+                () -> assertTrue(loadedBook1.isBorrowed()),
+                () -> assertFalse(loadedBook2.isBorrowed()),
+                () -> assertEquals(reader1.getId(), loadedBook1.getIdReader()),
+                () -> assertNull(loadedBook2.getIdReader()),
+                () -> assertEquals(book1.getIssueDate(), loadedBook1.getIssueDate()),
+                () -> assertNull(loadedBook2.getIssueDate()),
+                () -> assertEquals(book1.getDueDate(), loadedBook1.getDueDate()),
+                () -> assertNull(loadedBook2.getDueDate()),
+                () -> assertEquals(reader1.getName(),loadedReader1.getName()),
+                () -> assertEquals(reader2.getName(),loadedReader2.getName()),
+                () -> assertEquals(reader1.getPhone(), loadedReader1.getPhone()),
+                () -> assertEquals(reader2.getPhone(), loadedReader2.getPhone()),
+                () -> assertTrue(loadedReader2.getBookList().isEmpty()),
+                () -> assertTrue(loadedReader1.getBookList().contains(loadedBook1)),
+                () -> assertEquals(2, newLib.listAllBooks().size()),
+                () -> assertEquals(2, newLib.listAllReaders().size())
+        );
+    }
+
+    @Test
+    void saveAndLoad_idCountsPastLoad_idCountsCorrect() throws IOException{
+        Book book1 = library.addBook("Book1Title", "Book1Author", 1111);
+        Book book2 = library.addBook("Book2Title", "Book2Author", 2222);
+        Reader reader1 = library.addReader("Reader1Name", "Reader1Phone");
+        Reader reader2 = library.addReader("Reader2Name", "Reader2Phone");
+
+        library.saveToFile();
+
+        Library newLib = new Library(tempDir);
+        newLib.loadFromFile();
+
+
+
+        Book newBook = newLib.addBook(testTitle,testAuthor,testPublicationDate);
+        Reader newReader = newLib.addReader(testName,testPhone);
+
+        assertAll(
+                () -> assertNotEquals(book1.getId(), newBook.getId()),
+                () -> assertNotEquals(book2.getId(), newBook.getId()),
+                () -> assertNotEquals(reader1.getId(), newReader.getId()),
+                () -> assertNotEquals(reader2.getId(), newReader.getId()),
+                () -> assertEquals(3, newLib.listAllBooks().size())
+        );
+    }
+
+
+    @Test
+    void loadFromFile_loadingAllFiles_allFilesLoadedWithCorrectData() throws IOException{
+        createCatalogFile();
+        createReadersFile();
+        createCountsFile();
+
+        List<String> warnings = library.loadFromFile();
+
+        Book book1 = library.findBookById(1);
+        Book book2 = library.findBookById(2);
+        Book book6 = library.findBookById(6);
+
+        Reader reader1 = library.findReaderById(1);
+        Reader reader2 = library.findReaderById(2);
+        Reader reader5 = library.findReaderById(5);
+
+        assertAll(
+                () -> assertEquals(3,library.listAllBooks().size()),
+                () -> assertEquals(3, library.listAllReaders().size()),
+                () -> assertTrue(warnings.isEmpty())
+        );
+
+        assertAll(
+                () -> assertTrue(book6.isBorrowed()),
+                () -> assertEquals(2, book6.getIdReader()),
+                () -> assertEquals( "Night", book6.getTitle()),
+                () -> assertEquals("Steve", book6.getAuthor()),
+                () -> assertEquals(2015, book6.getPublicationDate()),
+                () -> assertEquals(LocalDate.parse("2026-10-10"), book6.getIssueDate()),
+                () -> assertEquals(LocalDate.parse("2026-10-24"), book6.getDueDate())
+        );
+        assertAll(
+                () -> assertTrue(book1.isBorrowed()),
+                () -> assertEquals(1, book1.getIdReader()),
+                () -> assertEquals("Crime", book1.getTitle()),
+                () -> assertEquals("Steve", book1.getAuthor()),
+                () -> assertEquals(2000, book1.getPublicationDate()),
+                () -> assertEquals(LocalDate.parse("2026-10-01"), book1.getIssueDate()),
+                () -> assertEquals(LocalDate.parse("2026-10-15"), book1.getDueDate())
+        );
+        assertAll(
+                () -> assertFalse(book2.isBorrowed()),
+                () -> assertNull(book2.getIdReader()),
+                () -> assertEquals("Garden", book2.getTitle()),
+                () -> assertEquals("Locali", book2.getAuthor()),
+                () -> assertEquals(2010, book2.getPublicationDate()),
+                () -> assertNull(book2.getIssueDate()),
+                () -> assertNull(book2.getDueDate())
+        );
+        assertAll(
+                () -> assertEquals("Anna", reader1.getName()),
+                () -> assertEquals("111", reader1.getPhone()),
+                () -> assertTrue(reader1.getBookList().contains(book1))
+        );
+        assertAll(
+                () -> assertEquals("Boris", reader2.getName()),
+                () -> assertEquals("222", reader2.getPhone()),
+                () -> assertTrue(reader2.getBookList().contains(book6))
+        );
+        assertAll(
+                () -> assertEquals("Clara", reader5.getName()),
+                () -> assertEquals("333", reader5.getPhone()),
+                () -> assertTrue(reader5.getBookList().isEmpty())
+        );
+
+        Book newBook = library.addBook(testTitle,testAuthor,testPublicationDate);
+        Reader newReader = library.addReader(testName,testPhone);
+        assertAll(
+                () -> assertEquals(99, newBook.getId()),
+                () -> assertEquals(77, newReader.getId())
+        );
+
+    }
+
+    @Test
+    void loadFromFile_countsFileMissing_nextIdCalculatedFromMaxId() throws IOException{
+        createReadersFile();
+        createCatalogFile();
+
+        library.loadFromFile();
+
+        Book newBook = library.addBook(testTitle,testAuthor,testPublicationDate);
+        Reader newReader = library.addReader(testName,testPhone);
+        assertAll(
+                () -> assertEquals(7, newBook.getId()),
+                () -> assertEquals(6, newReader.getId())
+        );
+    }
+
+    @Test
+    void loadFromFile_readersFileMissing_returnWarnings() throws IOException{
+        createCatalogFile();
+        createCountsFile();
+
+        List<String> warnings = library.loadFromFile();
+
+        boolean found1 = false;
+        boolean found2 =false;
+
+        for(String w : warnings) {
+            if (w.contains("Book 1 ") && w.contains("reader 1")){
+                found1 = true;
+            }
+            if(w.contains("Book 6") && w.contains("reader 2")){
+                found2 = true;
+            }
+        }
+        boolean finalFound1 = found1;
+        boolean finalFound2 = found2;
+        assertAll(
+                () -> assertTrue(finalFound1),
+                () -> assertTrue(finalFound2),
+                () -> assertEquals(2, warnings.size()),
+                () -> assertEquals(3, library.listAllBooks().size()),
+                () -> assertTrue(library.listAllReaders().isEmpty())
+        );
+    }
+
+    @Test
+    void loadFromFile_allFilesMissing_emptyLibrary() throws IOException{
+        List<String> warnings = library.loadFromFile();
+
+        assertAll(
+                () -> assertTrue(library.listAllReaders().isEmpty()),
+                () -> assertTrue(library.listAllBooks().isEmpty()),
+                () -> assertTrue(warnings.isEmpty())
+        );
+
+        Book book = library.addBook(testTitle,testAuthor,testPublicationDate);
+        Reader reader = library.addReader(testName,testPhone);
+
+        assertAll(
+                () -> assertEquals(1, book.getId()),
+                () -> assertEquals(1, reader.getId())
+        );
+    }
+
+    @Test
+    void loadFromFile_brokenFile_throwsIOException() throws IOException{
+        createReadersFile();
+        createCatalogFile();
+        File catalogFile = new File(tempDir, "Catalog.json");
+        Files.writeString(catalogFile.toPath(), """
+               {
+                  "1": {
+                    "id": 1,
+                    "borrowed": true,
+                    "idReader": 1,
+                    "title": "Crime",
+                    "eqweqthor": "Steve",
+                    "publicationDate": 2000,
+                    "issuasdaDate": "2026-10-01",
+                    "dueDate": "2026-10-15"
+                  },
+                  "2": {
+                    "id": 2,
+                    "bord": faewqse,
+                    "idReader": null,
+                    "title": "Garden",
+                    "aueweqeor": "Locali",
+                    "publicationDate": 2010,
+                    "issueDate": null,
+                    "dueDate": null
+                  },
+                  "6": {
+                    "id": 6,
+                    "borrowed": true,
+                    "idReader": 2,
+                    "title": "Night",
+                    "author": "Steve",
+                    "publicationDate": 2015,
+                    "issueDate": "2026-10-10",
+                    "dueDate": "2026-10-24"
+                  }
+                }""");
+
+        assertThrows(IOException.class, () -> library.loadFromFile());
+    }
+    @Test
+    void loadFromFile_emptyCountsFile_nextIdCalculatedFromMaxId() throws IOException{
+        createCatalogFile();
+        createReadersFile();
+        File countsFile = new File(tempDir, "Counts.json");
+        Files.writeString(countsFile.toPath(), """
+               {}""");
+
+       library.loadFromFile();
+
+       Book book = library.addBook(testTitle,testAuthor,testPublicationDate);
+       Reader reader = library.addReader(testName,testPhone);
+
+       assertAll(
+               () -> assertEquals("Crime", library.findBookById(1).getTitle()),
+               () -> assertEquals(7, book.getId()),
+               () -> assertEquals("Anna", library.findReaderById(1).getName()),
+               () -> assertEquals(6, reader.getId())
+       );
+    }
+
+    private void createCountsFile() throws IOException {
+        File countsFile = new File(tempDir, "Counts.json");
+        Files.writeString(countsFile.toPath(), """
+               { "bookIdCount": 99, "readerIdCount": 77 }""");
+    }
+
+    private void createReadersFile() throws IOException {
+        File readersfile = new File(tempDir, "Readers.json");
+        Files.writeString(readersfile.toPath(), """
+                {
+                  "1": { "id": 1, "name": "Anna", "phone": "111" },
+                  "2": { "id": 2, "name": "Boris", "phone": "222" },
+                  "5": { "id": 5, "name": "Clara", "phone": "333" }
+                }""");
+    }
+
+    private void createCatalogFile() throws IOException {
+        File catalogFile = new File(tempDir, "Catalog.json");
+        Files.writeString(catalogFile.toPath(), """
+                {
+                  "1": {
+                    "id": 1,
+                    "borrowed": true,
+                    "idReader": 1,
+                    "title": "Crime",
+                    "author": "Steve",
+                    "publicationDate": 2000,
+                    "issueDate": "2026-10-01",
+                    "dueDate": "2026-10-15"
+                  },
+                  "2": {
+                    "id": 2,
+                    "borrowed": false,
+                    "idReader": null,
+                    "title": "Garden",
+                    "author": "Locali",
+                    "publicationDate": 2010,
+                    "issueDate": null,
+                    "dueDate": null
+                  },
+                  "6": {
+                    "id": 6,
+                    "borrowed": true,
+                    "idReader": 2,
+                    "title": "Night",
+                    "author": "Steve",
+                    "publicationDate": 2015,
+                    "issueDate": "2026-10-10",
+                    "dueDate": "2026-10-24"
+                  }
+                }
+                """);
+    }
+
+
 }
